@@ -22,17 +22,30 @@ async function fetchRealStreamingLinks(dvdId: string) {
   console.log(`Fetching streaming links for: ${id}`);
   
   const promises = [
-    client.get(`https://missav.com/en/search/${encodeURIComponent(id)}`, { timeout: 5000 })
+    client.get(`https://missav.ws/en/search/${encodeURIComponent(id)}`, { timeout: 5000 })
       .then(resp => {
-        // More permissive regex
-        const match = resp.data.match(new RegExp(`href="([^"]*missav\\.com/[^"]*${id}[^"]*)"`, 'i'));
+        // Match either old .com or new .ws domain on MissAV links
+        const match = resp.data.match(new RegExp(`href="([^"]*(?:missav\\.com|missav\\.ws)/[^\"]*${id}[^\"]*)"`, 'i'));
         if (match) {
           console.log(`MissAV match found: ${match[1]}`);
           links.push({ site: 'MissAV', url: match[1] });
         } else {
           console.log(`No MissAV match for ${id}`);
         }
-      }).catch(e => console.error(`MissAV error for ${id}:`, e.message)),
+      }).catch((e: any) => {
+        console.error(`MissAV (ws) error for ${id}:`, e.message);
+        // fallback to .com
+        return client.get(`https://missav.com/en/search/${encodeURIComponent(id)}`, { timeout: 5000 })
+          .then(resp => {
+            const match = resp.data.match(new RegExp(`href="([^"]*(?:missav\\.com|missav\\.ws)/[^\"]*${id}[^\"]*)"`, 'i'));
+            if (match) {
+              console.log(`MissAV (.com fallback) match found: ${match[1]}`);
+              links.push({ site: 'MissAV', url: match[1] });
+            } else {
+              console.log(`No MissAV match for ${id} (fallback)`);
+            }
+          }).catch((e2: any) => console.error(`MissAV (.com fallback) error for ${id}:`, e2.message));
+      }),
     client.get(`https://jable.tv/search/${encodeURIComponent(id)}/`, { timeout: 5000 })
       .then(resp => {
         // More permissive regex
@@ -44,17 +57,7 @@ async function fetchRealStreamingLinks(dvdId: string) {
           console.log(`No Jable match for ${id}`);
         }
       }).catch(e => console.error(`Jable error for ${id}:`, e.message)),
-    client.get(`https://jav.guru/?s=${encodeURIComponent(id)}`, { timeout: 5000 })
-      .then(resp => {
-        // More permissive regex
-        const match = resp.data.match(new RegExp(`href="([^"]*jav\\.guru/[^"]*${id}[^"]*)"`, 'i'));
-        if (match) {
-          console.log(`JavGuru match found: ${match[1]}`);
-          links.push({ site: 'JavGuru', url: match[1] });
-        } else {
-          console.log(`No JavGuru match for ${id}`);
-        }
-      }).catch(e => console.error(`JavGuru error for ${id}:`, e.message))
+
   ];
   
   await Promise.allSettled(promises);
@@ -152,7 +155,6 @@ export async function fetchMovieMetadata(pageUrl: string, includeStreamingLinks 
             { site: 'MissAV', url: `https://missav.com/en/search/${encodeURIComponent(meta.dvdId || '')}` },
             { site: 'Jable', url: `https://jable.tv/search/${encodeURIComponent(meta.dvdId || '')}/` },
             { site: 'SupJav', url: `https://supjav.com/?s=${encodeURIComponent(meta.dvdId || '')}` },
-            { site: 'JavGuru', url: `https://jav.guru/?s=${encodeURIComponent(meta.dvdId || '')}` },
             { site: 'JavHD', url: `https://javhd.today/search/${encodeURIComponent(meta.dvdId || '')}` },
             { site: 'JavMost', url: `https://www5.javmost.com/search/${encodeURIComponent(meta.dvdId || '')}/` },
             { site: 'JavBangers', url: `https://javbangers.com/search/${encodeURIComponent(meta.dvdId || '')}` },

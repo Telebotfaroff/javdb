@@ -45,7 +45,7 @@ export default function App() {
   } | null>(null);
   const [profilePicSelector, setProfilePicSelector] = useState<{ movieUrls: string[], actressName: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentView, setCurrentView] = useState<'home' | 'actresses' | 'studios' | 'settings' | 'autopost' | 'actress-detail' | 'jav-codes' | 'not-found'>('home');
   const [telegramBotToken, setTelegramBotToken] = useState(localStorage.getItem('tg_bot_token') || '');
   const [telegramChannelId, setTelegramChannelId] = useState(localStorage.getItem('tg_channel_id') || '');
@@ -710,16 +710,22 @@ export default function App() {
       </aside>
 
       <div className="flex-grow lg:pl-0">
-        <header className="bg-card border-b border-border sticky top-0 z-30">
+        <header className="bg-card border-b border-border z-30">
           <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 hover:bg-accent rounded-lg text-foreground">
-                <Menu size={20} />
+              <button onClick={() => setIsSidebarOpen(prev => !prev)} className="p-2 hover:bg-accent rounded-lg text-foreground">
+                {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
               <h1 className="text-2xl font-extrabold text-foreground tracking-tight">
                 JAV<span className="text-primary">Database</span>
               </h1>
             </div>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="hidden lg:inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-foreground transition hover:bg-accent"
+            >
+              <X size={16} /> Hide Sidebar
+            </button>
           </div>
         </header>
 
@@ -840,7 +846,7 @@ export default function App() {
                 </div>
                 <h3 className="text-2xl font-bold text-center mb-2">Delete Actress?</h3>
                 <p className="text-muted-foreground text-center mb-8">
-                  Are you sure you want to remove <span className="font-bold text-foreground">{actressToDelete}</span> from your tracked list? This action cannot be undone.
+                  Are you sure you want to remove this actress from your tracked list? This action cannot be undone.
                 </p>
                 <div className="flex gap-3">
                   <button

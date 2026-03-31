@@ -33,15 +33,28 @@ export class TelegramBotController {
     });
   }
 
-  private startBot() {
+  private async startBot() {
     if (this.bot) {
-      this.bot.stopPolling();
+      console.log("Stopping existing bot instance before restart...");
+      await this.bot.stopPolling();
+      this.bot = null;
+      // Wait a moment to ensure Telegram releases the long-polling connection
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     if (!this.token) return;
 
     console.log("Starting Telegram Bot...");
     this.bot = new TelegramBot(this.token, { polling: true });
+
+    this.bot.on("polling_error", (error) => {
+      console.error("Telegram polling_error", error);
+      if (error.code === "ETELEGRAM" && error.message?.includes("409")) {
+        console.warn("Telegram bot conflict detected: stopping current poller.");
+        this.bot?.stopPolling();
+        this.bot = null;
+      }
+    });
 
     registerCommands(this);
     registerCallbacks(this);

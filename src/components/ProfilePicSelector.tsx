@@ -18,7 +18,17 @@ export function ProfilePicSelector({ movieUrls, actressName, onClose, onSave }: 
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [processing, setProcessing] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (selectedImage) {
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCroppedAreaPixels(null);
+      setImageLoaded(false);
+    }
+  }, [selectedImage]);
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -89,11 +99,9 @@ export function ProfilePicSelector({ movieUrls, actressName, onClose, onSave }: 
       const image = new Image();
       image.addEventListener('load', () => resolve(image));
       image.addEventListener('error', (error) => reject(error));
-      // Important: this allows us to draw the image to a canvas without tainting it
       if (!url.startsWith('data:')) {
         image.setAttribute('crossOrigin', 'anonymous'); 
-        // Add a cache-buster to prevent CORS issues with cached images
-        image.src = url + (url.includes('?') ? '&' : '?') + 'not-from-cache-please';
+        image.src = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
       } else {
         image.src = url;
       }
@@ -103,38 +111,33 @@ export function ProfilePicSelector({ movieUrls, actressName, onClose, onSave }: 
     imageSrc: string,
     pixelCrop: any
   ): Promise<string> => {
-    try {
-      const image = await createImage(imageSrc);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
 
-      if (!ctx) {
-        throw new Error('No 2d context');
-      }
-
-      // Set canvas size to the desired output size (e.g., 512x512 for a high-quality profile pic)
-      canvas.width = 512;
-      canvas.height = 512;
-
-      // Draw the cropped area of the image onto the canvas
-      ctx.drawImage(
-        image,
-        pixelCrop.x,
-        pixelCrop.y,
-        pixelCrop.width,
-        pixelCrop.height,
-        0,
-        0,
-        512,
-        512
-      );
-
-      // Return as base64 string
-      return canvas.toDataURL('image/jpeg', 0.9);
-    } catch (e) {
-      console.error('Cropping failed, likely CORS issue. Using original URL.', e);
-      throw e;
+    if (!ctx) {
+      throw new Error('No 2d context');
     }
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    canvas.width = 512;
+    canvas.height = 512;
+
+    ctx.drawImage(
+      image,
+      pixelCrop.x * scaleX,
+      pixelCrop.y * scaleY,
+      pixelCrop.width * scaleX,
+      pixelCrop.height * scaleY,
+      0,
+      0,
+      512,
+      512
+    );
+
+    return canvas.toDataURL('image/jpeg', 0.9);
   };
 
   const handleSave = async () => {
