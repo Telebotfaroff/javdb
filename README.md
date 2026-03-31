@@ -91,6 +91,4 @@ npm run dev
 
 PRs and issues are welcome. Please test any scraping changes against live site updates.
 
----
 
-If you'd like, I can also add a simple roadmap section and contribution guidelines.
