@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: actresses
+    // Document ID: [auto-generated]
+    // Fields:
+    //   - name: string (required, max 100 chars)
+    //   - profilePic: string (optional, max 1000 chars)
+    //   - createdAt: timestamp (required, immutable)
+    //   - movies: list of objects (optional)
+    //
+    // Collection: studios
+    // Document ID: [auto-generated]
+    // Fields:
+    //   - name: string (required, max 100 chars)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "imtiazhaque413@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+    
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    function isValidString(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+             request.resource.data[field].size() >= minLen &&
+             request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidActress(data) {
+      return hasRequiredFields(['name', 'createdAt']) &&
+             hasOnlyAllowedFields(['name', 'profilePic', 'createdAt', 'movies']) &&
+             isValidString('name', 1, 100) &&
+             (!('profilePic' in data) || (data.profilePic is string && data.profilePic.size() <= 1000)) &&
+             (!('movies' in data) || data.movies is list) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidStudio(data) {
+      return hasRequiredFields(['name', 'createdAt']) &&
+             hasOnlyAllowedFields(['name', 'createdAt']) &&
+             isValidString('name', 1, 100) &&
+             data.createdAt is timestamp;
+    }
+
+    match /actresses/{actressId} {
+      allow read, write: if true;
+    }
+
+    match /studios/{studioId} {
+      allow read, write: if true;
+    }
+
+    match /javCodes/{prefix} {
+      allow read, write: if true;
+    }
+
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    match /settings/{config} {
+      allow read, write: if true;
+    }
+
+    match /notFound/{code} {
+      allow read, write: if true;
+    }
+  }
+}

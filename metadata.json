@@ -1,0 +1,5 @@
+{
+  "name": "Movie Tracker & Scraper",
+  "description": "A comprehensive tool for scraping movie details and tracking actresses and studios with Telegram integration.",
+  "requestFramePermissions": []
+}

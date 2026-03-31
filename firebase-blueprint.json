@@ -1,0 +1,164 @@
+{
+  "entities": {
+    "Actress": {
+      "title": "Actress",
+      "description": "An actress tracked by the user.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the actress"
+        },
+        "profilePic": {
+          "type": "string",
+          "description": "URL to the actress's profile picture"
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "When the actress was added"
+        },
+        "movies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string" },
+              "title": { "type": "string" },
+              "link": { "type": "string" },
+              "poster": { "type": "string" }
+            }
+          },
+          "description": "List of movies associated with this actress"
+        }
+      },
+      "required": ["name", "createdAt"]
+    },
+    "Studio": {
+      "title": "Studio",
+      "description": "A studio tracked by the user.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the studio"
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "When the studio was added"
+        }
+      },
+      "required": ["name", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user of the application.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the user"
+        },
+        "email": {
+          "type": "string",
+          "description": "The email of the user"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user (admin or user)",
+          "enum": ["admin", "user"]
+        }
+      },
+      "required": ["name", "email", "role"]
+    },
+    "JavCode": {
+      "title": "JavCode",
+      "description": "A group of JAV video codes sharing the same prefix.",
+      "type": "object",
+      "properties": {
+        "prefix": {
+          "type": "string",
+          "description": "The prefix of the codes (e.g., PFES)"
+        },
+        "codes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of codes in this group"
+        },
+        "updatedAt": {
+          "type": "timestamp",
+          "description": "When the group was last updated"
+        }
+      },
+      "required": ["prefix", "codes", "updatedAt"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global application settings.",
+      "type": "object",
+      "properties": {
+        "telegramBotToken": { "type": "string" },
+        "telegramChannelId": { "type": "string" },
+        "botLogToken": { "type": "string" },
+        "updatedAt": { "type": "timestamp" }
+      }
+    },
+    "NotFound": {
+      "title": "NotFound",
+      "description": "A video ID that was not found during autoposting.",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The video ID that was not found"
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "When the ID was recorded as not found"
+        },
+        "query": {
+          "type": "string",
+          "description": "The search query that led to this not found ID"
+        }
+      },
+      "required": ["code", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/actresses/{actressId}": {
+      "schema": {
+        "$ref": "#/entities/Actress"
+      },
+      "description": "Collection of tracked actresses"
+    },
+    "/studios/{studioId}": {
+      "schema": {
+        "$ref": "#/entities/Studio"
+      },
+      "description": "Collection of tracked studios"
+    },
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Collection of users"
+    },
+    "/javCodes/{prefix}": {
+      "schema": {
+        "$ref": "#/entities/JavCode"
+      },
+      "description": "Collection of grouped JAV codes"
+    },
+    "/settings/config": {
+      "schema": {
+        "$ref": "#/entities/Settings"
+      },
+      "description": "Global configuration document"
+    },
+    "/notFound/{code}": {
+      "schema": {
+        "$ref": "#/entities/NotFound"
+      },
+      "description": "Collection of video IDs that were not found"
+    }
+  }
+}
