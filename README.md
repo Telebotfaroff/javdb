@@ -14,11 +14,7 @@ A modern movie database app (JAV-focused) with a rich UI, search engine, and Tel
 
 ## 🧩 Architecture
 
-- `server.ts`: Express + Vite dev server, Telegram bot init, API middleware.
-- `src/server/api.ts`: exposes endpoints for movie search, details, actress info, etc.
-- `src/server/scraper/index.ts`: scraping logic for metadata and streaming links.
-- `src/server/bot/`: Telegram command and callback handlers.
-- `src/App.tsx`:
+
 ## 📦 Requirements
 
 - Node.js 18+
