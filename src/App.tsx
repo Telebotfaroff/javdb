@@ -720,12 +720,6 @@ export default function App() {
                 JAV<span className="text-primary">Database</span>
               </h1>
             </div>
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="hidden lg:inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-foreground transition hover:bg-accent"
-            >
-              <X size={16} /> Hide Sidebar
-            </button>
           </div>
         </header>
 
